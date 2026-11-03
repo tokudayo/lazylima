@@ -1,0 +1,39 @@
+# Lightweight playground for poking at LazyLima.
+#   docker compose -f dev/compose.yaml up -d
+#   docker compose -f dev/compose.yaml down -v
+name: playground
+
+services:
+  web:
+    image: nginx:alpine
+    ports: ["8080:80"]
+    networks: [front]
+
+  whoami:
+    image: traefik/whoami
+    ports: ["8081:80"]
+    networks: [front]
+
+  cache:
+    image: redis:alpine
+    networks: [back]
+    volumes: [cache-data:/data]
+
+  # Steady log stream for testing follow, pause, search and wrap.
+  chatter:
+    image: busybox
+    networks: [back]
+    command: sh -c 'i=0; while true; do i=$$((i+1)); echo "tick $$i · $$(date) · a fairly long line to try wrapping in the logs pane, lorem ipsum dolor sit amet"; sleep 1; done'
+
+  # Runs once and exits, so there's a stopped container to start/delete.
+  oneshot:
+    image: busybox
+    command: echo "hello from oneshot, bye"
+    restart: "no"
+
+networks:
+  front:
+  back:
+
+volumes:
+  cache-data:
